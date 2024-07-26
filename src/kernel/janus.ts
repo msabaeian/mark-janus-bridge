@@ -4,7 +4,9 @@ import AudioBridgePlugin from "janode/plugins/audiobridge";
 
 class JanodeService {
   private static instance: JanodeService;
-  private session: any;
+  private sessionHandler: any;
+  private managerHandler: any
+
   constructor() {
     this._boot();
   }
@@ -35,14 +37,15 @@ class JanodeService {
 
       const session = await connection.create();
       console.log(`session with Janus created`);
-      this.session = session;
+      this.sessionHandler = session;
 
       session.once(janode.EVENT.SESSION_DESTROYED, () => {
         console.log(`session destroyed`);
-        this.session = null;
+        this.sessionHandler = null;
       });
 
       const handle = await session.attach(AudioBridgePlugin);
+      this.managerHandler = handle
       console.log(`manager handle attached`);
 
       // generic handle events
@@ -54,11 +57,6 @@ class JanodeService {
       if (connection) {
         connection.close().catch(() => {});
       }
-
-      // notify clients
-      // replyError(io, "backend-failure");
-
-      throw error;
     }
   }
 
@@ -69,16 +67,28 @@ class JanodeService {
     return JanodeService.instance;
   }
 
-  public static getSession(): JanodeService {
+  public static getSessionHandler() {
     if (!JanodeService.instance) {
-      throw new Error("you should call this method only if you've an instance");
+      throw new Error("[getSessionHandler] you should call this method only if you've an instance");
     }
 
-    if (!JanodeService.instance.session) {
-      throw new Error("session not available");
+    if (!JanodeService.instance.sessionHandler) {
+      throw new Error("session handler not available");
     }
 
-    return JanodeService.instance.session;
+    return JanodeService.instance.sessionHandler;
+  }
+
+  public static getManagerHandler() {
+    if (!JanodeService.instance) {
+      throw new Error("[getManagerHandler] you should call this method only if you've an instance");
+    }
+
+    if (!JanodeService.instance.managerHandler) {
+      throw new Error("manager handler not available");
+    }
+
+    return JanodeService.instance.managerHandler;
   }
 }
 

@@ -1,25 +1,23 @@
 import { Server } from "socket.io";
-import { App } from "uWebSockets.js"
 import JanodeService from "./kernel/janus";
+import express from "express";
+import { createServer } from "http";
+import initExpressRoutes from "./controller/http/start";
 
-const app = App();
-const io = new Server();
-io.attachApp(app);
-JanodeService.getInstance();
+const app = express();
+app.use(express.json());
+
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 
 io.on("connection", (socket) => {
   console.log("a user connected");
 });
 
-app.get("/", (res, req) => {
-  res.end("It works!")
-})
+initExpressRoutes(app)
 
 const PORT = Number(process.env.PORT) || 3000;
-app.listen(PORT, (token) => {
-  console.log(`Listening on port: ${PORT}`)
-  if (!token) {
-    console.warn("port already in use");
-  }
+httpServer.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  JanodeService.getInstance();
 });
-
