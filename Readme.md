@@ -4,7 +4,6 @@
 
 ### Socket (Server)
 - [x] join to room id onConnection, if could't drop the user
-- [] `destroyed` 
-- [] `configure` 
-- [] `leave` 
-- [] `disconnect`
+- [x] `destroyed` 
+- [x] `configure` 
+- [x] `disconnect`

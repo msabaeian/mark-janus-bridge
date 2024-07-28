@@ -14,6 +14,7 @@ const onConnectEstablished = async (socket: Socket, audioHandle) => {
       (evtdata) => {
         audioHandle.detach().catch(() => {});
         emitEvent(socket, "destroyed", evtdata);
+        socket.disconnect(true)
       }
     );
 

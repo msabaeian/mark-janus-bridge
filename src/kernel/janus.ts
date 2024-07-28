@@ -1,6 +1,7 @@
 import janode from "janode";
 // @ts-ignore
 import AudioBridgePlugin from "janode/plugins/audiobridge";
+import Env from "../util/env";
 
 class JanodeService {
   private static instance: JanodeService;
@@ -18,8 +19,8 @@ class JanodeService {
       connection = await janode.connect({
         address: [
           {
-            url: "ws://37.152.178.4:8188",
-            apisecret: "secret",
+            url: Env.JANUS_URL,
+            apisecret: Env.JANUS_SECRET,
           },
         ],
         retry_time_secs: 10,

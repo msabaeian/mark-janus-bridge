@@ -1,0 +1,5 @@
+{
+  "platform": "node",
+  "app": "janus-audio",
+  "port": 3000
+}
