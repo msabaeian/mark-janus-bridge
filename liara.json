@@ -1,5 +1,5 @@
 {
   "platform": "node",
-  "app": "janus-audio",
+  "app": "mark-audio-bridge",
   "port": 3000
 }

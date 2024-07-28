@@ -1,0 +1,39 @@
+name: Deploy to liara
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "21.7.0"
+
+            - name: "Setup jq"
+              uses: dcarbone/install-jq-action@v2
+
+            - name: Build project
+              run: |
+                  npm ci
+                  npm run build
+
+            - name: Create package.json and clone private package
+              shell: bash
+              run: ./scripts/package-json.sh
+
+            - name: Install Liara CLI
+              run: npm i -g @liara/cli
+
+            - name: Deploy
+              env:
+                  LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
+              run: |
+                  cd dist
+                  liara deploy --api-token="$LIARA_TOKEN" --no-app-logs
