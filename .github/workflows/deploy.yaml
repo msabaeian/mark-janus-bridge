@@ -36,4 +36,4 @@ jobs:
                   LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
               run: |
                   cd dist
-                  liara deploy --api-token="$LIARA_TOKEN" --no-app-logs
+                  liara deploy --app="mark-audio-bridge" --platform="node" --port=3000 --api-token="$LIARA_TOKEN" --no-app-logs

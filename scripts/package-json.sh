@@ -6,9 +6,6 @@ ORIGINAL_JSON=$(cat package.json)
 # Remove devDependencies and scripts
 MODIFIED_JSON=$(echo "$ORIGINAL_JSON" | jq 'del(.devDependencies, .scripts)')
 
-# Remove mark-common (liara does not support this)
-# MODIFIED_JSON=$(echo "$ORIGINAL_JSON" | jq 'del(.dependencies."mark-common")')
-
 # Add the new "start" script
 MODIFIED_JSON=$(echo "$MODIFIED_JSON" | jq '.scripts += {"start": "node index.js"}')
 
