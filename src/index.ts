@@ -1,23 +1,18 @@
-import { Server } from "socket.io";
-import JanodeService from "./kernel/janus";
-import express from "express";
-import { createServer } from "http";
 import initExpressRoutes from "./controller/http/start";
+import initSocketEvents from "./controller/socket/start";
+import boot from "./kernel/boot";
 
-const app = express();
-app.use(express.json());
+(async () => {
+  const { shutdown } = await boot();
+  initExpressRoutes()
+  initSocketEvents()
 
-const httpServer = createServer(app);
-const io = new Server(httpServer);
 
-io.on("connection", (socket) => {
-  console.log("a user connected");
-});
+  const handleClose = (signal: string) => () => {
+      console.info(`Received signal ${signal}`);
+      shutdown();
+  };
 
-initExpressRoutes(app)
-
-const PORT = Number(process.env.PORT) || 3000;
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  JanodeService.getInstance();
-});
+  process.on("SIGINT", handleClose("SIGINT"));
+  process.on("SIGTERM", handleClose("SIGTERM"));
+})();

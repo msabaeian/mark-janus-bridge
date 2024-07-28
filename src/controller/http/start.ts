@@ -1,8 +1,10 @@
 import type {Express} from 'express'
 import createRoom from './create-room';
 import destroyRoom from './destroy-room';
+import ExpressApp from '../../kernel/expressApp';
 
-function initExpressRoutes(app: Express){
+function initExpressRoutes(){
+    const app = ExpressApp.getApp()
     app.get("/", (_, res) => {
         res.send("It works!!");
     });
