@@ -1,8 +1,10 @@
 import SocketIO from "../../kernel/socket";
 import { StatusCodes } from "http-status-codes";
 import { verifyToken } from "../../util/jwt";
-import onConnectEstablished from "./on-connect";
-import onConfigure from "./on-configure";
+import { emitError, emitEvent } from "../../util/socket";
+import JanodeService from "../../kernel/janus";
+// @ts-ignore
+import AudioBridgePlugin from "janode/plugins/audiobridge";
 
 function initSocketEvents() {
   const io = SocketIO.getIO();
@@ -37,17 +39,72 @@ function initSocketEvents() {
     let audioHandle;
 
     if (audioHandle) {
-      await audioHandle.detach().catch(() => { });
+      await audioHandle.detach().catch(() => {});
     }
 
-    // join a room
-    onConnectEstablished(socket, audioHandle)
+    try {
+      const janodeSession = JanodeService.getSessionHandler();
+      audioHandle = await janodeSession.attach(AudioBridgePlugin);
 
-    socket.on("configure", onConfigure(audioHandle))
-    
-    socket.on('disconnect', () => {  
+      audioHandle.once(
+        AudioBridgePlugin.EVENT.AUDIOBRIDGE_DESTROYED,
+        (evtdata) => {
+          audioHandle.detach().catch(() => {});
+          emitEvent(socket, "destroyed", evtdata);
+          socket.disconnect(true);
+        }
+      );
+
+      audioHandle.on(
+        AudioBridgePlugin.EVENT.AUDIOBRIDGE_CONFIGURED,
+        (evtdata) => {
+          emitEvent(socket, "configured", evtdata);
+        }
+      );
+
+      const joindata = {
+        room: socket.data.room,
+        display: socket.data.user_id,
+        muted: false,
+        suspended: false,
+        token: null,
+        rtp_participant: null,
+        group: null,
+        pin: socket.data.pin,
+      };
+
+      const response = await audioHandle.join(joindata);
+
+      emitEvent(socket, "joined", response);
+    } catch ({ message }: any) {
+      if (audioHandle) audioHandle.detach().catch(() => {});
+      if (message && message === "483 Missing mandatory element (pin)") {
+        emitEvent(socket, "join-denied");
+      } else {
+        emitError(socket, message);
+      }
+      socket.disconnect(true);
+    }
+
+    socket.on("configure", async (evtdata) => {
+      const { data } = evtdata;
+
+      if (!data || !data.jsep) {
+        emitError(socket, "no offer detected");
+        return;
+      }
+
+      try {
+        const response = await audioHandle.configure(data);
+        emitEvent(socket, "configured", response);
+      } catch ({ message }: any) {
+        emitError(socket, message);
+      }
+    });
+
+    socket.on("disconnect", () => {
       if (audioHandle) {
-        audioHandle.detach().catch(() => { });
+        audioHandle.detach().catch(() => {});
       }
     });
   });
