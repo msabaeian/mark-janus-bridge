@@ -64,7 +64,7 @@ function initSocketEvents() {
 
       const joindata = {
         room: socket.data.room,
-        display: socket.data.user_id,
+        display: "test",
         muted: false,
         suspended: false,
         token: null,
