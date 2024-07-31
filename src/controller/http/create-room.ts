@@ -22,7 +22,7 @@ const createRoom = async (req, res) => {
       
 
       if(req.body.gameId && req.body.roundNumber){
-        createData.rec_dir = `/root/records/${roomId}/${req.body.gameId}/`
+        createData.rec_dir = `/root/records/${req.body.roomId}/${req.body.gameId}/`
         createData.filename = `r-${req.body.roundNumber}-${new Date().toISOString()}.wav`
       }else{
         createData.filename = `${new Date().toISOString()}.wav`
