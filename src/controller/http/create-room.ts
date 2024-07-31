@@ -2,7 +2,7 @@ import JanodeService from "../../kernel/janus";
 import { generateUniqueRoomId } from "../../util/janus";
 import { generateRandomString } from "../../util/random";
 
-const createRoom = async (_, res) => {
+const createRoom = async (req, res) => {
   console.log("request to create a room");
   const roomId = await generateUniqueRoomId();
   if (!roomId) {
@@ -11,10 +11,25 @@ const createRoom = async (_, res) => {
   const roomPin = generateRandomString(6);
 
   try {
-    const response = await JanodeService.getManagerHandler().create({
+    let createData: any = {
       room: roomId,
       pin: roomPin,
-    });
+    }
+    
+    if (req.body.roomId) {
+      createData.record = true
+      createData.rec_dir = `/root/records/${req.body.roomId}/`
+      
+
+      if(req.body.gameId && req.body.roundNumber){
+        createData.rec_dir = `/root/records/${roomId}/${req.body.gameId}/`
+        createData.filename = `r-${req.body.roundNumber}-${new Date().toISOString()}.wav`
+      }else{
+        createData.filename = `${new Date().toISOString()}.wav`
+      }
+    }
+
+    const response = await JanodeService.getManagerHandler().create(createData);
 
     if (response && !response.room) {
       console.log(`cannot create room`);
